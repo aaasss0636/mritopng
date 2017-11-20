@@ -3,13 +3,7 @@ import png
 import dicom
 
 
-def mri_to_png(mri_file, png_file):
-    """ Function to convert from a DICOM image to png
-
-        @param mri_file: An opened file like object to read te dicom data
-        @param png_file: An opened file like object to write the png data
-    """
-
+def extract_grayscale_image(mri_file):
     # Extracting data from the mri file
     plan = dicom.read_file(mri_file)
     shape = plan.pixel_array.shape
@@ -33,9 +27,21 @@ def mri_to_png(mri_file, png_file):
             col_scaled = int((float(max(col, 0)) / float(max_val)) * 255.0)
             row_scaled.append(col_scaled)
         image_2d_scaled.append(row_scaled)
+    
+    return image_2d_scaled
+
+
+def mri_to_png(mri_file, png_file):
+    """ Function to convert from a DICOM image to png
+
+        @param mri_file: An opened file like object to read te dicom data
+        @param png_file: An opened file like object to write the png data
+    """
+
+    image_2d_scaled = extract_grayscale_image(mri_file)
 
     # Writing the PNG file
-    w = png.Writer(shape[1], shape[0], greyscale=True)
+    w = png.Writer(len(image_2d_scaled[0]), len(image_2d_scaled), greyscale=True)
     w.write(png_file, image_2d_scaled)
 
 
