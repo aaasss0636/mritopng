@@ -6,6 +6,9 @@ import tempfile
 import filecmp
 import unittest
 import mritopng
+from mritopng import contrast
+
+curr_path = os.path.dirname(os.path.realpath(__file__))
 
 class TestMRIToPNG(unittest.TestCase):
     """ Basic tests for mritopng """
@@ -17,7 +20,6 @@ class TestMRIToPNG(unittest.TestCase):
 
     def test_convert_file(self):
         """ Tests conversion of a single DICOM file """
-        curr_path = os.path.dirname(os.path.realpath(__file__))
         sample_path = os.path.join(curr_path, 'data', 'samples', 'dicom1')
         expected_path = os.path.join(curr_path, 'data', 'expected', 'dicom1.png')
         actual_path = os.path.join(tempfile.gettempdir(), '%s.%s' % (uuid.uuid4(), "png"))
@@ -38,7 +40,6 @@ class TestMRIToPNG(unittest.TestCase):
         """ Tests DICOM files with negative values, which are clipped to 0 """
 
         cases = ['000012.dcm', '000017.dcm']
-        curr_path = os.path.dirname(os.path.realpath(__file__))
 
         for case in cases:
             
@@ -56,3 +57,18 @@ class TestMRIToPNG(unittest.TestCase):
             
             self.assertTrue(filecmp.cmp(actual_path, expected_path),
                             'PNG generated from dicom1 does not match the expected version')
+    
+    def test_contrast(self):
+        sample_path = os.path.join(curr_path, 'data', 'samples', '000017.dcm')
+        image = mritopng.extract_grayscale_image(sample_path)
+        histogram = contrast.histogram(image)
+
+        for shade in histogram:
+            print('%d\t%d' % (shade, histogram[shade]))
+        
+        a = contrast.shade_at_percentile(histogram, 0.05)
+        b = contrast.shade_at_percentile(histogram, 0.95)
+        print("a = %d" % a)
+        print("b = %d" % b)
+        raise Exception("test failed")
+
